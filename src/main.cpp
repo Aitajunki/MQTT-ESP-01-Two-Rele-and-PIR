@@ -64,77 +64,16 @@ const char* RELE1_OFF = "OFF";
 const char* RELE2_ON = "ON";
 const char* RELE2_OFF = "OFF";
 
-// RELE1 : D?
-const PROGMEM uint8_t RELE1_PIN = 2;
+// RELE1 : GPIO0
+const PROGMEM uint8_t RELE1_PIN = 0;
 boolean m_rele1_state = false; // rele1 is turned off by default
 
-// RELE2 : D?
-const PROGMEM uint8_t RELE2_PIN = 3;
+// RELE2 : GPIO2
+const PROGMEM uint8_t RELE2_PIN = 2;
 boolean m_rele2_state = false; // rele2 is turned off by default
-
-// // SWITCH1 : D5
-// const PROGMEM uint8_t SWITCH1_PIN = D5;
-// boolean m_switch1_state = false;
-//
-// // SWITCH2 : D6
-// const PROGMEM uint8_t SWITCH2_PIN = D6;
-// boolean m_switch2_state = false;
-
 
 WiFiClient wifiClient;
 PubSubClient client(wifiClient);
-// OneButton switch1(SWITCH1_PIN, false); // false : active HIGH
-// OneButton switch2(SWITCH2_PIN, false); // false : active HIGH
-
-// function called to publish the state of the switch (on/off)
-// void publishSwitchState() {
-//   if (m_switch1_state) {
-//     client.publish(MQTT_SWITCH1_STATUS_TOPIC, SWITCH1_ON, true);
-//   } else {
-//     client.publish(MQTT_SWITCH1_STATUS_TOPIC, SWITCH1_OFF, true);
-//   }
-//
-//   if (m_switch2_state) {
-//     client.publish(MQTT_SWITCH2_STATUS_TOPIC, SWITCH2_ON, true);
-//   } else {
-//     client.publish(MQTT_SWITCH2_STATUS_TOPIC, SWITCH2_OFF, true);
-//   }
-// }
-
-// function called on button press, toggle the state of the switch
-// void clickSwitch1() {
-//
-//   if (m_switch1_state) {
-//     Serial.println("INFO: Switch1 off...");
-//     m_switch1_state = false;
-//   } else {
-//     Serial.println("INFO: Switch1 on...");
-//     m_switch1_state = true;
-//   }
-//
-//   publishSwitchState();
-// }
-//
-// void clickSwitch2() {
-//   if (m_switch2_state) {
-//     Serial.println("INFO: Switch2 off...");
-//     m_switch2_state = false;
-//   } else {
-//     Serial.println("INFO: Switch2 on...");
-//     m_switch2_state = true;
-//   }
-//
-//   publishSwitchState();
-// }
-
-// // function called to publish the state of the pir sensor
-// void publishPirSensorState() {
-//   if (m_pir_state) {
-//     client.publish(MQTT_MOTION_STATUS_TOPIC, MOTION_OFF, true);
-//   } else {
-//     client.publish(MQTT_MOTION_STATUS_TOPIC, MOTION_ON, true);
-//   }
-// }
 
 // function called to publish the state of the rele (on/off)
 void publishReleState() {
