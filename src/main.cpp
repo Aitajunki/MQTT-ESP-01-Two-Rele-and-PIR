@@ -41,21 +41,22 @@
 */
 
 #include <Arduino.h>
+#include <Secrets.h>
 #include <ESP8266WiFi.h>
 #include <PubSubClient.h>
 
-#define MQTT_VERSION MQTT_VERSION_3_1_1
-
-// Wifi: SSID and password
-const PROGMEM char* WIFI_SSID = "[Redacted]";
-const PROGMEM char* WIFI_PASSWORD = "[Redacted]";
-
-// MQTT: ID, server IP, port, username and password
-const PROGMEM char* MQTT_CLIENT_ID = "office_aitas";
-const PROGMEM char* MQTT_SERVER_IP = "[Redacted]";
-const PROGMEM uint16_t MQTT_SERVER_PORT = 1883;
-const PROGMEM char* MQTT_USER = "[Redacted]";
-const PROGMEM char* MQTT_PASSWORD = "[Redacted]";
+// #define MQTT_VERSION MQTT_VERSION_3_1_1
+//
+// // Wifi: SSID and password
+// const PROGMEM char* WIFI_SSID = "[Redacted]";
+// const PROGMEM char* WIFI_PASSWORD = "[Redacted]";
+//
+// // MQTT: ID, server IP, port, username and password
+// const PROGMEM char* MQTT_CLIENT_ID = "office_aitas";
+// const PROGMEM char* MQTT_SERVER_IP = "[Redacted]";
+// const PROGMEM uint16_t MQTT_SERVER_PORT = 1883;
+// const PROGMEM char* MQTT_USER = "[Redacted]";
+// const PROGMEM char* MQTT_PASSWORD = "[Redacted]";
 
 // MQTT: topic
 const char* MQTT_RELE1_STATE_TOPIC = "office/rele1/status";
@@ -63,6 +64,7 @@ const char* MQTT_RELE1_COMMAND_TOPIC = "office/rele1/switch";
 const char* MQTT_RELE2_STATE_TOPIC = "office/rele2/status";
 const char* MQTT_RELE2_COMMAND_TOPIC = "office/rele2/switch";
 const char* MQTT_MOTION_STATUS_TOPIC = "office/motion/status";
+const char* MQTT_MOTION_ENABLE_TOPIC = "office/motion/enable";
 
 // default payload
 const char* RELE1_ON = "ON";
@@ -71,6 +73,8 @@ const char* RELE2_ON = "ON";
 const char* RELE2_OFF = "OFF";
 const char* MOTION_ON = "OFF";
 const char* MOTION_OFF = "ON";
+const char* MOTION_ENABLE = "ENABLE";
+const char* MOTION_DISABLE = "DISABLE";
 
 // RELE1 : GPIO0
 const PROGMEM uint8_t RELE1_PIN = 0;
@@ -84,6 +88,7 @@ boolean m_rele2_state = false; // rele2 is turned off by default
 const PROGMEM uint8_t PIR_PIN = 3;
 uint8_t m_pir_state = HIGH; // no motion detected
 uint8_t m_pir_value = 0;
+boolean m_pir_enable = true;   // true enable, false disable
 
 WiFiClient wifiClient;
 PubSubClient client(wifiClient);
@@ -173,6 +178,15 @@ void callback(char* p_topic, byte* p_payload, unsigned int p_length) {
       }
     }
   }
+
+  if (String(MQTT_MOTION_ENABLE_TOPIC).equals(p_topic)) {
+    // test if the payload is equal to "ENABLE" or "DISABLE"
+    if (payload.equals(String(MOTION_ENABLE))) {
+      m_pir_enable = true; // eneable control PIR
+    } else if (payload.equals(String(MOTION_DISABLE))) {
+      m_pir_enable = false; // eneable control PIR
+    }
+  }
 }
 
 void reconnect() {
@@ -245,19 +259,21 @@ void loop() {
   client.loop();
 
   // read the PIR sensor
-  m_pir_value = digitalRead(PIR_PIN);
-  if (m_pir_value == HIGH) {
-    if (m_pir_state == LOW) {
-      // a motion is detected
-      Serial.println("INFO: Motion detected");
-      publishPirSensorState();
-      m_pir_state = HIGH;
-    }
-  } else {
-    if (m_pir_state == HIGH) {
-      publishPirSensorState();
-      Serial.println("INFO: Motion ended");
-      m_pir_state = LOW;
+  if (m_pir_enable) {
+    m_pir_value = digitalRead(PIR_PIN);
+    if (m_pir_value == HIGH) {
+      if (m_pir_state == LOW) {
+        // a motion is detected
+        Serial.println("INFO: Motion detected");
+        publishPirSensorState();
+        m_pir_state = HIGH;
+      }
+    } else {
+      if (m_pir_state == HIGH) {
+        publishPirSensorState();
+        Serial.println("INFO: Motion ended");
+        m_pir_state = LOW;
+      }
     }
   }
 }
